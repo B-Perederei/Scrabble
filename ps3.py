@@ -322,27 +322,53 @@ def play_game(word_list):
     word_list: list of lowercase strings
     """
     hands_number = int(input("Enter total number of hands: "))
-    hands_number_copy_for_cycle = hands_number
+    hand_match = {}
     score_for_the_game = 0
-    hand_match = deal_hand(HAND_SIZE)
-    replay_the_hand = 'yes'
+    score_match = 0
+    replaying_this_match = False
+    replay_the_hand_switch = True
+    substitute_letter_switch = True
+    hand_match = {}
     while hands_number > 0:
-        # Main game
-        if hands_number != hands_number_copy_for_cycle:
-            # Needed for not asking user to replay the hand at first match
-            replay_the_hand = input("Would you like to replay the hand? ")
-        if replay_the_hand == 'no':
+        if not replaying_this_match:
+            # Needed in case of running cycle with old hand (replaying)
             hand_match = deal_hand(HAND_SIZE)
-        if replay_the_hand == 'no' or hands_number == hands_number_copy_for_cycle:
+        # Main game
+        if substitute_letter_switch and not replaying_this_match:
+            # Possibility to substitute letter
+            # Starts if it wasn't used before and this match isn't a replay
             display_hand(hand_match)
             substitute_answer = input("Would you like to substitute a letter? ")
             if substitute_answer == 'yes':
+                # Turning off substitute function for the player
+                substitute_letter_switch = False
                 # Substituting letter in the hand, if user input is 'yes'
                 letter_substitute = input("Which letter would you like to replace: ")
+                print()
                 hand_match = substitute_hand(hand_match, letter_substitute)
-        score_for_the_game += play_hand(hand_match, word_list)
-        hands_number -= 1
+            else:
+                # Needed for accurate output if user don't want to substitute letter
+                print()
+        # Playing the match
+        if replaying_this_match:
+            # Situation of replaying the game
+            replaying_this_match = False
+            score_for_the_game -= score_match
+        score_match = play_hand(hand_match, word_list)
+        score_for_the_game += score_match
         print("--------")
+        if replay_the_hand_switch:
+            # Possibility to replay the hand
+            replay_the_hand = input("Would you like to replay the hand? ")
+            if replay_the_hand == 'yes':
+                # Turning off replaying function for user
+                replay_the_hand_switch = False
+                # Turning switch replaying_this_match to indicate replay
+                replaying_this_match = True
+                # Replaying match
+                continue
+        # Minus hands after match
+        hands_number -= 1
     print("Total score over all hands:", score_for_the_game)
 
 
